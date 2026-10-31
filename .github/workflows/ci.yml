@@ -1,0 +1,78 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      demo_fail:
+        description: "Inject the intentional test failure (proves CI blocks the release)"
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Lint, test, dependency audit
+    runs-on: ubuntu-latest
+    env:
+      DEMO_FAIL: ${{ inputs.demo_fail && '1' || '0' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements-dev.txt
+      - name: Lint
+        run: ruff check .
+      - name: Unit tests with coverage
+        run: pytest --cov=app --cov-report=term-missing
+      - name: Dependency vulnerability audit
+        run: pip-audit -r requirements.txt
+
+  build:
+    name: Build and scan image
+    needs: test            # a failing test job stops everything below
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build versioned image
+        run: docker build --build-arg APP_VERSION=${{ github.sha }} -t apex-ops-api:${{ github.sha }} .
+      - name: Scan image for critical vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: apex-ops-api:${{ github.sha }}
+          severity: CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+  deploy-local:
+    name: Deploy with Compose and smoke test
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Create .env from the example (CI-only key)
+        run: |
+          echo "API_KEY=ci-$(openssl rand -hex 16)" > .env
+          echo "LOG_LEVEL=INFO" >> .env
+      - name: Start the stack
+        run: APP_VERSION=ci-${{ github.run_number }} docker compose up -d --build
+      - name: Wait for readiness
+        run: |
+          for i in $(seq 1 30); do
+            curl -fsS http://localhost:8000/ready && exit 0
+            sleep 2
+          done
+          docker compose logs
+          exit 1
+      - name: Smoke test
+        run: scripts/smoke.sh
+      - name: Tear down
+        if: always()
+        run: docker compose down -v
