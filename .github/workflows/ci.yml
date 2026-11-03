@@ -72,7 +72,7 @@ jobs:
           docker compose logs
           exit 1
       - name: Smoke test
-        run: scripts/smoke.sh
+        run: bash scripts/smoke.sh
       - name: Tear down
         if: always()
         run: docker compose down -v
