@@ -1,0 +1,45 @@
+== 1. Baseline: service healthy
+{"status":"ready"}
+
+HTTP 200
+
+== 2. Inject fault (simulated incident)
+ Container apex-ops-api-1 Recreate 
+ Container apex-ops-api-1 Recreated 
+ Container apex-ops-api-1 Starting 
+ Container apex-ops-api-1 Started 
+
+== 3. Symptom: readiness fails
+{"reason":"fault injection (demo)","status":"not_ready"}
+
+HTTP 503
+{"status":"ok"}
+
+HTTP 200
+
+== 4. Container status
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                            PORTS                                         NAMES
+5b6cd5df0cc8   apex-ops-api:1.0.0   "gunicorn --bind 0.0…"   10 seconds ago   Up 8 seconds (health: starting)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp   apex-ops-api-1
+
+== 5. Logs show the cause
+api-1  | [2026-11-09 09:00:39 +0000] [1] [INFO] Starting gunicorn 23.0.0
+api-1  | [2026-11-09 09:00:39 +0000] [1] [INFO] Listening at: http://0.0.0.0:8000 (1)
+api-1  | [2026-11-09 09:00:39 +0000] [1] [INFO] Using worker: gthread
+api-1  | [2026-11-09 09:00:39 +0000] [7] [INFO] Booting worker with pid: 7
+api-1  | {"ts": "2026-11-09T09:00:40.036407+00:00", "level": "INFO", "msg": "database ready", "db_path": "/data/ops.db"}
+api-1  | {"ts": "2026-11-09T09:00:44.679815+00:00", "level": "ERROR", "msg": "readiness failed", "reason": "fault injection"}
+api-1  | {"ts": "2026-11-09T09:00:44.679999+00:00", "level": "INFO", "msg": "request", "request_id": "c6944be9b802", "method": "GET", "path": "/ready", "status": 503, "duration_ms": 0.21}
+api-1  | {"ts": "2026-11-09T09:00:47.671832+00:00", "level": "ERROR", "msg": "readiness failed", "reason": "fault injection"}
+api-1  | {"ts": "2026-11-09T09:00:47.672073+00:00", "level": "INFO", "msg": "request", "request_id": "4d791e7d0104", "method": "GET", "path": "/ready", "status": 503, "duration_ms": 0.28}
+api-1  | {"ts": "2026-11-09T09:00:47.786932+00:00", "level": "INFO", "msg": "request", "request_id": "9ec6929f4be6", "method": "GET", "path": "/health", "status": 200, "duration_ms": 0.17}
+
+== 6. Recover: remove fault
+ Container apex-ops-api-1 Recreate 
+ Container apex-ops-api-1 Recreated 
+ Container apex-ops-api-1 Starting 
+ Container apex-ops-api-1 Started 
+{"status":"ready"}
+
+HTTP 200
+CONTAINER ID   IMAGE                COMMAND                  CREATED          STATUS                   PORTS                                         NAMES
+6bb11c9902ba   apex-ops-api:1.0.0   "gunicorn --bind 0.0…"   10 seconds ago   Up 8 seconds (healthy)   0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp   apex-ops-api-1
