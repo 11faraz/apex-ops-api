@@ -1,1 +1,29 @@
-bash: make: command not found
+Unable to find image 'python:3.12-slim' locally
+3.12-slim: Pulling from library/python
+Digest: sha256:5e2bdb1b0d542d5039cffb8181c65930093949194a65c365dfb1b0fe13a4fa5b
+Status: Downloaded newer image for python:3.12-slim
+WARNING: Running pip as the 'root' user can result in broken permissions and conflicting behaviour with the system package manager, possibly rendering your system unusable. It is recommended to use a virtual environment instead: https://pip.pypa.io/warnings/venv. Use the --root-user-action option if you know what you are doing and want to suppress this warning.
+
+[notice] A new release of pip is available: 25.0.1 -> 26.3
+[notice] To update, run: pip install --upgrade pip
+All checks passed!
+============================= test session starts ==============================
+platform linux -- Python 3.12.16, pytest-8.3.4, pluggy-1.7.0
+rootdir: /work
+configfile: pyproject.toml
+testpaths: tests
+plugins: cov-6.0.0
+collected 11 items
+
+tests/test_api.py ...........                                            [100%]
+
+---------- coverage: platform linux, python 3.12.16-final-0 ----------
+Name              Stmts   Miss  Cover   Missing
+-----------------------------------------------
+app/__init__.py       0      0   100%
+app/main.py         139     13    91%   33, 105, 120-121, 154-156, 166-168, 180-182
+-----------------------------------------------
+TOTAL               139     13    91%
+
+
+============================== 11 passed in 1.47s ==============================

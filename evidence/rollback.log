@@ -1,1 +1,7 @@
-No version given and .release/previous is empty.
+==> Rolling back 1.0.1 -> 1.0.0
+ Container apex-ops-api-1 Recreate 
+ Container apex-ops-api-1 Recreated 
+ Container apex-ops-api-1 Starting 
+ Container apex-ops-api-1 Started 
+OK: version 1.0.0 is ready
+==> Rollback to 1.0.0 complete (data volume untouched)

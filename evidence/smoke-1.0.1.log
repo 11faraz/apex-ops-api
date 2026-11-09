@@ -1,1 +1,7 @@
-grep: .env: No such file or directory
+health:  {"status":"ok"}
+ready:   {"status":"ready"}
+version: {"version":"1.0.1"}
+create:  {"created_at":"2026-11-09T08:44:20.083307+00:00","id":2,"name":"smoke test operation","status":"open"}
+list:    [{"created_at":"2026-11-09T08:44:13.423485+00:00","id":1,"name":"smoke test operation","status":"open"},{"created_at":"2026-11-09T08:44:20.083307+00:00","id":2,"name":"smoke test operation","status":"open"}]
+metrics: 14 apex_ metric lines
+SMOKE TEST PASSED
